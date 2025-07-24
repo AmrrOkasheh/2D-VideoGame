@@ -1,5 +1,6 @@
 package io.github.amrrokasheh.firstgame;
 
+import io.github.amrrokasheh.firstgame.TitleScreen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -11,6 +12,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+
 
 public class TitleScreen implements Screen {
     private final Main game;
@@ -19,6 +22,7 @@ public class TitleScreen implements Screen {
     private Texture swordTexture;
     private Image swordImage;
     private TextButton startButton;
+    private TextButton optionsButton;
 
     public TitleScreen(Main game) {
         this.game = game;
@@ -50,14 +54,34 @@ public class TitleScreen implements Screen {
             }
         });
         stage.addActor(startButton);
+        //
+        optionsButton = new TextButton("Options", skin);
+        optionsButton.setSize(200, 60);
+        optionsButton.setPosition(
+            (Gdx.graphics.getWidth() - optionsButton.getWidth()) / 2,
+            startButton.getY() - 80
+        );
+        optionsButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                System.out.println("Options button clicked!");
+                game.setScreen(new OptionsScreen(game));
+            }
+        });
+        stage.addActor(optionsButton);
+
     }
 
     @Override
-    public void show() {}
+    public void show() {
+        stage.getRoot().getColor().a = 0f;
+        stage.getRoot().addAction(Actions.fadeIn(1f));
+
+    }
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.12f, 0.12f, 0.18f, 1);
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.act(delta);
         stage.draw();
