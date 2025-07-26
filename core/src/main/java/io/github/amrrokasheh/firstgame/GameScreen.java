@@ -26,7 +26,7 @@ public class GameScreen implements Screen {
 
     // Player state
     private float playerX, playerY;
-    private float speed = 200f; // pixels per second
+    private float speed = 150f; // pixels per second
 
     public GameScreen(Main game) {
         this.game = game;
