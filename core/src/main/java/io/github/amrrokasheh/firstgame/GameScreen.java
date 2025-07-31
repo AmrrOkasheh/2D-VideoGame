@@ -15,20 +15,28 @@ public class GameScreen implements Screen {
     private final Main game;
     private SpriteBatch batch;
     private Texture playerTexture;
-    private Texture weaponTexture; // 🔫 NEW
+    private Texture weaponTexture;
 
+    // Camera Variables
     private OrthographicCamera camera;
     private Viewport viewport;
 
+    // Map Size Variables
     private static final int TILE_SIZE = 32;
     private static final int TILES_WIDE = 20;
     private static final int TILES_TALL = 12;
     private static final int VIRTUAL_WIDTH = TILE_SIZE * TILES_WIDE;   // 640
     private static final int VIRTUAL_HEIGHT = TILE_SIZE * TILES_TALL; // 384
 
+    // Player Position
     private float playerX;
     private float playerY;
-    private float speed = 200.0F;
+
+    // Round Variables
+    private int currentRound = 1;
+    private boolean roundOver = false;
+    private float roundEndTimer = 0f;
+    boolean waveComplete = false;
 
     public GameScreen(Main game) {
         this.game = game;
@@ -39,7 +47,7 @@ public class GameScreen implements Screen {
         batch = new SpriteBatch();
 
         playerTexture = new Texture(Gdx.files.internal("amrr.png"));
-        weaponTexture = new Texture(Gdx.files.internal("drac.png")); // 🔫 Load weapon
+        weaponTexture = new Texture(Gdx.files.internal("drac.png"));
 
         camera = new OrthographicCamera();
         viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
@@ -63,25 +71,35 @@ public class GameScreen implements Screen {
 
         batch.begin();
         batch.draw(playerTexture, playerX, playerY);
-
-        // Draw weapon slightly offset from player (adjust as needed)
         batch.draw(weaponTexture, playerX + 24, playerY + 8);
-
         batch.end();
+
+        // --- Wave check ---
+        if (!waveComplete) {
+            roundEndTimer += delta;
+            if (roundEndTimer >= 5f) {
+                waveComplete = true;
+                game.stats.addUpgradePoints(1);
+                game.setScreen(new UpgradeScreen(game));
+            }
+        }
     }
 
     private void handleInput(float delta) {
+        // ✅ Pull current speed from stats
+        float playerSpeed = game.stats.getSpeed();
+
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            playerY += speed * delta;
+            playerY += playerSpeed * delta;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            playerY -= speed * delta;
+            playerY -= playerSpeed * delta;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            playerX -= speed * delta;
+            playerX -= playerSpeed * delta;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            playerX += speed * delta;
+            playerX += playerSpeed * delta;
         }
 
         float maxX = VIRTUAL_WIDTH - TILE_SIZE;
@@ -103,6 +121,6 @@ public class GameScreen implements Screen {
     public void dispose() {
         batch.dispose();
         playerTexture.dispose();
-        weaponTexture.dispose(); // 
+        weaponTexture.dispose();
     }
 }
