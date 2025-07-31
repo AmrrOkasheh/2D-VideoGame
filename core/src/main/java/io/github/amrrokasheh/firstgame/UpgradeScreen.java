@@ -1,15 +1,16 @@
 package io.github.amrrokasheh.firstgame;
 
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.amrrokasheh.firstgame.Player.UpgradeType;
-
 
 public class UpgradeScreen implements Screen {
     private final Main game;
@@ -20,67 +21,71 @@ public class UpgradeScreen implements Screen {
         this.game = game;
         stage = new Stage(new ScreenViewport());
 
-
         Skin skin = new Skin(Gdx.files.internal("uiskin.json"));
 
-        // Title label
-        Label label = new Label("Upgrade time!", skin);
-        label.setPosition(100, 380);
-        stage.addActor(label);
+        // Use a Table for layout
+        Table table = new Table();
+        table.setFillParent(true); // fills the whole screen
+        table.center();
+        stage.addActor(table);
 
-        // Points label
         pointsLabel = new Label("Upgrade Points: " + game.stats.getUpgradePoints(), skin);
-        pointsLabel.setPosition(100, 340);
-        stage.addActor(pointsLabel);
 
-        // --- Buttons for upgrades ---
-        createUpgradeButton("Increase Health", UpgradeType.HEALTH, 20f, 1, skin, 280);
-        createUpgradeButton("Increase Speed", UpgradeType.SPEED, 30f, 1, skin, 220);
-        createUpgradeButton("Increase Attack Speed", UpgradeType.ATTACK_SPEED, -0.1f, 1, skin, 160);
+        // --- Buttons ---
+        TextButton healthButton = new TextButton("Increase Health", skin);
+        healthButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (game.stats.upgrade(UpgradeType.HEALTH, 20f, 1)) updatePointsLabel();
+            }
+        });
 
-        // Continue button (next round)
+        TextButton speedButton = new TextButton("Increase Speed", skin);
+        speedButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (game.stats.upgrade(UpgradeType.SPEED, 30f, 1)) updatePointsLabel();
+            }
+        });
+
+        TextButton attackButton = new TextButton("Increase Attack Speed", skin);
+        attackButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (game.stats.upgrade(UpgradeType.ATTACK_SPEED, -0.1f, 1)) updatePointsLabel();
+            }
+        });
+
         TextButton continueButton = new TextButton("Next Round", skin);
-        continueButton.setPosition(100, 100);
         continueButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.currentRound++;
-                game.setScreen(new GameScreen(game));
+                GameScreen gameScreen = game.getGameScreen();
+                gameScreen.nextRound();
+                game.setScreen(gameScreen);
             }
         });
-        stage.addActor(continueButton);
+
+        // --- Add everything to table ---
+        table.add(pointsLabel).padBottom(20).colspan(2).row();
+        table.add(healthButton).width(200).padBottom(10).row();
+        table.add(speedButton).width(200).padBottom(10).row();
+        table.add(attackButton).width(200).padBottom(20).row();
+        table.add(continueButton).width(200);
     }
 
-    // Helper method to create upgrade buttons
-    private void createUpgradeButton(String text, UpgradeType type, float amount, int cost, Skin skin, float y) {
-        TextButton button = new TextButton(text, skin);
-        button.setPosition(100, y);
-        button.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                if (game.stats.upgrade(type, amount, cost)) {
-                    pointsLabel.setText("Upgrade Points: " + game.stats.getUpgradePoints());
-                }
-            }
-        });
-        stage.addActor(button);
+    private void updatePointsLabel() {
+        pointsLabel.setText("Upgrade Points: " + game.stats.getUpgradePoints());
     }
 
-    @Override public void render(float delta) {
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        stage.act(delta);
-        stage.draw();
-    }
-
-    @Override public void show() {
-        Gdx.input.setInputProcessor(stage);
-    }
-    @Override public void resize(int width, int height) {}
+    @Override
+    public void show() { Gdx.input.setInputProcessor(stage); }
+    @Override
+    public void render(float delta) { stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f)); stage.draw(); }
+    @Override
+    public void resize(int width, int height) { stage.getViewport().update(width, height, true); }
     @Override public void pause() {}
     @Override public void resume() {}
-    @Override public void hide() {
-        Gdx.input.setInputProcessor(null);
-    }
+    @Override public void hide() { Gdx.input.setInputProcessor(null); }
     @Override public void dispose() { stage.dispose(); }
 }
